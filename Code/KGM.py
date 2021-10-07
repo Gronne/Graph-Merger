@@ -2,10 +2,9 @@
 
 #---- Libraries -----
 from HelpFiles.FileModules import *
-from GraphEngine.GraphEngine import GraphEngine
+from GraphEngine.GraphEngine import *
 from MergeEngine.MergeEngine import MergeEngine
 from Evaluation.Evaluation import Evaluator
-from LearningTree.LearningTree import LearningTree
 
 #------- Main -------
 
@@ -29,4 +28,10 @@ Evaluate = Evaluator()
 
 
 
-#Extra text
+#Test
+G = Graph()
+nodes = [Node("A"), Node("B"), Node("C"), Node("D")]
+edges = [Edge(nodes[0], nodes[1]), Edge(nodes[1], nodes[2]), Edge(nodes[2], nodes[3]), Edge(nodes[3], nodes[0]), Edge(nodes[0], nodes[2])]
+G.add_nodes(nodes)
+G.add_edges(edges)
+G.print_info()
