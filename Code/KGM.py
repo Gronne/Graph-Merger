@@ -35,3 +35,9 @@ edges = [Edge(nodes[0], nodes[1]), Edge(nodes[1], nodes[2]), Edge(nodes[2], node
 G.add_nodes(nodes)
 G.add_edges(edges)
 G.print_info()
+
+plot = VisualizeGraph.visualize_graph_network(G, [750, 750])
+
+cv2.imshow('Graph', plot)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
