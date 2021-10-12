@@ -31,12 +31,16 @@ Evaluate = Evaluator()
 #Test
 G = Graph()
 nodes = [Node("A"), Node("B"), Node("C"), Node("D")]
-edges = [Edge(nodes[0], nodes[1]), Edge(nodes[1], nodes[2]), Edge(nodes[2], nodes[3]), Edge(nodes[3], nodes[0]), Edge(nodes[0], nodes[2])]
+edges = [ Edge(nodes[0], nodes[1], "part of"), 
+          Edge(nodes[1], nodes[2], "subclass of"), 
+          Edge(nodes[2], nodes[3], "Parent of"), 
+          Edge(nodes[3], nodes[0], "Creative"), 
+          Edge(nodes[0], nodes[2], "Something")]
 G.add_nodes(nodes)
 G.add_edges(edges)
 G.print_info()
 
-plot = VisualizeGraph.visualize_graph_network(G, [750, 750])
+plot = Visualize.visualize_graph_network(G, [750, 750])
 
 cv2.imshow('Graph', plot)
 cv2.waitKey(0)
