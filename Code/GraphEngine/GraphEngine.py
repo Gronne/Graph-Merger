@@ -24,7 +24,7 @@ class GraphEngine:
 
 class Visualize:
     #Find where to place the nodes using the networkx-lib, generate the graphic with own code using open-cv
-    def visualize_graph_network(graph: Graph, size = [500, 500]) -> None:
+    def KnowledgeGraph(graph: Graph, size = [500, 500]) -> None:
         node_pos = Visualize._get_node_network_structure(graph)
         layout = Visualize._generate_layout(size + [3])
         layout = Visualize._place_nodes(layout, size, graph, node_pos)
@@ -47,30 +47,48 @@ class Visualize:
         for edge in graph.get_edges():
             coor_from = Visualize._transform_coors(size, node_pos[edge.from_node.id])
             coor_to = Visualize._transform_coors(size, node_pos[edge.to_node.id])
-            layout = Visualize._add_arrow(layout, size, nr_of_nodes, coor_from, coor_to)
+            layout = Visualize._add_arrow(layout, size, graph, edge, nr_of_nodes, coor_from, coor_to)
         return layout
 
-    def _add_arrow(layout, img_size, nr_of_nodes, coor_from, coor_to):
+    def _add_arrow(layout, img_size, graph, edge, nr_of_nodes, coor_from, coor_to):
+        radian_offset = Visualize._calc_radian_offset(graph, edge)
         radius = Visualize._calc_full_circle_radius(img_size, nr_of_nodes)
-        angle = math.atan(abs(coor_from[1]-coor_to[1])/abs(coor_from[0]-coor_to[0]))
 
-        height = int(radius*math.sin(angle))
-        width = int(radius*math.cos(angle))
+        if edge.from_node.id < edge.to_node.id:
+            angle_from = math.atan(abs(coor_from[1]-coor_to[1])/abs(coor_from[0]-coor_to[0])) + radian_offset
+            angle_to = math.atan(abs(coor_from[1]-coor_to[1])/abs(coor_from[0]-coor_to[0])) - radian_offset
+        else:
+            angle_from = math.atan(abs(coor_from[1]-coor_to[1])/abs(coor_from[0]-coor_to[0])) - radian_offset
+            angle_to = math.atan(abs(coor_from[1]-coor_to[1])/abs(coor_from[0]-coor_to[0])) + radian_offset
+        
+        height_from = int(radius*math.sin(angle_from))
+        width_from = int(radius*math.cos(angle_from))
+
+        height_to = int(radius*math.sin(angle_to))
+        width_to = int(radius*math.cos(angle_to))
     
         if (coor_to[0] - coor_from[0]) >= 0 and (coor_to[1] - coor_from[1]) >= 0:   
-            new_coor_from = (coor_from[0] + width, coor_from[1] + height)
-            new_coor_to = (coor_to[0] - width, coor_to[1] - height)
+            new_coor_from = (coor_from[0] + width_from, coor_from[1] + height_from)
+            new_coor_to = (coor_to[0] - width_to, coor_to[1] - height_to)
         elif (coor_to[0] - coor_from[0]) < 0 and (coor_to[1] - coor_from[1]) >= 0:
-            new_coor_from = (coor_from[0] - width, coor_from[1] + height)
-            new_coor_to = (coor_to[0] + width, coor_to[1] - height)
+            new_coor_from = (coor_from[0] - width_from, coor_from[1] + height_from)
+            new_coor_to = (coor_to[0] + width_to, coor_to[1] - height_to)
         elif (coor_to[0] - coor_from[0]) < 0 and (coor_to[1] - coor_from[1]) < 0:
-            new_coor_from = (coor_from[0] - width, coor_from[1] - height)
-            new_coor_to = (coor_to[0] + width, coor_to[1] + height)
+            new_coor_from = (coor_from[0] - width_from, coor_from[1] - height_from)
+            new_coor_to = (coor_to[0] + width_to, coor_to[1] + height_to)
         elif (coor_to[0] - coor_from[0]) >= 0 and (coor_to[1] - coor_from[1]) < 0:
-            new_coor_from = (coor_from[0] + width, coor_from[1] - height)
-            new_coor_to = (coor_to[0] - width, coor_to[1] + height)
+            new_coor_from = (coor_from[0] + width_from, coor_from[1] - height_from)
+            new_coor_to = (coor_to[0] - width_to, coor_to[1] + height_to)
         
         return cv2.arrowedLine(layout, new_coor_from, new_coor_to, (0, 0, 0), 4)
+
+    def _calc_radian_offset(graph, edge):
+        edges_between_nodes = graph.get_edges_between(edge.from_node, edge.to_node)
+        sorted_edge_ids = sorted([edge.id for edge in edges_between_nodes])
+        index = sorted_edge_ids.index(edge.id)
+        full_offset = (6.28/18) * (len(edges_between_nodes)-1)
+        return -(full_offset/2) + ((6.28/18) * index)
+
 
     def _calc_full_circle_radius(img_size, nr_of_nodes):
         smallest_side = img_size[0] if img_size[0] < img_size[1] else img_size[1]

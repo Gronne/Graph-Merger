@@ -75,6 +75,10 @@ class Node:
     def edges(self):
         return self._edges
 
+    @property
+    def nr_of_edges(self):
+        return len([key for key in self._edges])
+
 
 
 
@@ -203,6 +207,9 @@ class Graph:
 
     def get_edge_ids(self):
         return [(self._dict_of_edges[key].from_node.id, self._dict_of_edges[key].to_node.id) for key in self._dict_of_edges]
+
+    def get_edges_between(self, node_a, node_b):
+        return [node_a.edges[key] for key in node_a.edges if key in node_b.edges]
 
     def print_info(self):
         print('Nodes: ' + ''.join(f"{self._dict_of_nodes[id].name}-{str(self._dict_of_nodes[id].id)}, " for id in self._dict_of_nodes)[:-2])
