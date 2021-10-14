@@ -48,20 +48,24 @@ class Identifier:
 class Node:
     _id_count = 0
 
-    def __init__(self, name : str):
+    def __init__(self, name : str, label : str = None):
         self._identifier = Identifier()
         self._name = name
         self._edges = {}
+        self._label = str("") if label == None else label
 
     def __eq__(self, node: object) -> bool:
         return self.id == node.id
 
-    def add_edge(self, edge):
+    def add_edge(self, edge) -> None:
         self._edges[edge.id] = edge
 
-    def remove_edge(self, edge):
+    def remove_edge(self, edge) -> None:
         if edge.id in self._edges:
             del self._edges[edge.id]
+
+    def set_label(self, label : str) -> None:
+        self._label = label
 
     @property
     def id(self) -> int:
@@ -78,6 +82,10 @@ class Node:
     @property
     def nr_of_edges(self):
         return len([key for key in self._edges])
+
+    @property
+    def label(self):
+        return self._label
 
 
 

@@ -47,10 +47,10 @@ class Visualize:
         for edge in graph.get_edges():
             coor_from = Visualize._transform_coors(size, node_pos[edge.from_node.id])
             coor_to = Visualize._transform_coors(size, node_pos[edge.to_node.id])
-            layout = Visualize._add_arrow(layout, size, graph, edge, nr_of_nodes, coor_from, coor_to)
+            layout = Visualize._add_arrow_and_type(layout, size, graph, edge, nr_of_nodes, coor_from, coor_to)
         return layout
 
-    def _add_arrow(layout, img_size, graph, edge, nr_of_nodes, coor_from, coor_to):
+    def _add_arrow_and_type(layout, img_size, graph, edge, nr_of_nodes, coor_from, coor_to):
         radian_offset = Visualize._calc_radian_offset(graph, edge)
         radius = Visualize._calc_full_circle_radius(img_size, nr_of_nodes)
 
@@ -79,8 +79,21 @@ class Visualize:
         elif (coor_to[0] - coor_from[0]) >= 0 and (coor_to[1] - coor_from[1]) < 0:
             new_coor_from = (coor_from[0] + width_from, coor_from[1] - height_from)
             new_coor_to = (coor_to[0] - width_to, coor_to[1] + height_to)
-        
-        return cv2.arrowedLine(layout, new_coor_from, new_coor_to, (0, 0, 0), 4)
+
+        arrow_img = cv2.arrowedLine(layout, new_coor_from, new_coor_to, (0, 0, 0), 4)
+        text_img = Visualize._add_text_to_arrow(arrow_img, edge.type, new_coor_from, new_coor_to)
+        return text_img
+
+    def _add_text_to_arrow(img, text, from_coor, to_coor):
+        center = (from_coor[0]-((from_coor[0]-to_coor[0])/2), from_coor[1]-((from_coor[1]-to_coor[1])/2))
+        arrow_length = math.sqrt((from_coor[0]-to_coor[0])**2 + (from_coor[1]-to_coor[1])**2)
+        text_font = cv2.FONT_HERSHEY_SIMPLEX
+        text_thickness = int(math.ceil(arrow_length/(len(text)*20)))
+        axis = 0 if abs(from_coor[0]-to_coor[0]) > abs(from_coor[1]-to_coor[1]) else 1
+        text_scale = abs(from_coor[axis]-to_coor[axis])/300
+        text_size, _ = cv2.getTextSize(text, text_font, text_scale, text_thickness)
+        text_start = (int(center[0] - text_size[0] / 2), int(center[1] + text_size[1] / 2)-(text_size[1]))
+        return cv2.putText(img, text, text_start, text_font, text_scale, (255, 0, 0), text_thickness, cv2.LINE_AA)
 
     def _calc_radian_offset(graph, edge):
         edges_between_nodes = graph.get_edges_between(edge.from_node, edge.to_node)
@@ -88,7 +101,6 @@ class Visualize:
         index = sorted_edge_ids.index(edge.id)
         full_offset = (6.28/18) * (len(edges_between_nodes)-1)
         return -(full_offset/2) + ((6.28/18) * index)
-
 
     def _calc_full_circle_radius(img_size, nr_of_nodes):
         smallest_side = img_size[0] if img_size[0] < img_size[1] else img_size[1]
@@ -123,13 +135,25 @@ class Visualize:
         return layout
 
     def _add_text_to_circle(layout, node: Node, coor, circle_radius, circle_border):
-        text_scale = int(circle_border/4)
-        text_thickness = int(math.ceil(circle_radius/10)/2)
         font = cv2.FONT_HERSHEY_SIMPLEX
-        text_size, _ = cv2.getTextSize(node.name, font, text_scale, text_thickness)
+        text = node.name + ( ":" + node.label if node.label != "" else "")
+        text_thickness = int(math.ceil(circle_radius/(len(text)*10)))
+        text_scale = Visualize._find_node_text_scale(text, font, text_thickness, circle_radius)
+        text_size, _ = cv2.getTextSize(text, font, text_scale, text_thickness)
         text_origin = (int(coor[0] - text_size[0] / 2), int(coor[1] + text_size[1] / 2))
-        layout = cv2.putText(layout, node.name, text_origin, font, text_scale, (255, 0, 0), text_thickness, cv2.LINE_AA)
+        layout = cv2.putText(layout, text, text_origin, font, text_scale, (255, 0, 0), text_thickness, cv2.LINE_AA)
         return layout
+
+    def _find_node_text_scale(text, font, thickness, node_radius):
+        diameter = node_radius * 1.5
+        scale_factor = 1
+        text_scale = (diameter/scale_factor)
+        text_size, _ = cv2.getTextSize(text, font, text_scale, thickness)
+        while text_size[0] > diameter:
+            scale_factor += 0.25
+            text_scale = (diameter/scale_factor)
+            text_size, _ = cv2.getTextSize(text, font, text_scale, thickness)
+        return text_scale
     
 
     def visualize_graph_tree(graph: Graph) -> None:

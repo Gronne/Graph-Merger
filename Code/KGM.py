@@ -30,10 +30,11 @@ Evaluate = Evaluator()
 
 #Test
 G = Graph()
-nodes = [Node("A"), Node("B"), Node("C"), Node("D")]
+nodes = [Node("A", "typeB"), Node("B"), Node("C"), Node("D")]
 edges = [ Edge(nodes[0], nodes[1], "part of"), 
           Edge(nodes[1], nodes[0], "part of"),
           Edge(nodes[0], nodes[1], "Something"),
+          Edge(nodes[1], nodes[0], "Something"),
           Edge(nodes[1], nodes[2], "subclass of"), 
           Edge(nodes[2], nodes[3], "Parent of"), 
           Edge(nodes[3], nodes[0], "Creative"), 
