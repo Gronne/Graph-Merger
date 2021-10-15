@@ -101,6 +101,9 @@ class Website:
         self._dict_of_pages[page.id] = page
         self._dict_of_pages[page.id].set_website(self)
 
+    def add_internal_link(self, from_page, to_page):
+        from_page.add_internal_link(to_page.link)
+
 
 
 

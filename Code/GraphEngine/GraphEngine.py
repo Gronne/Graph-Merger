@@ -136,7 +136,7 @@ class Visualize:
 
     def _add_text_to_circle(layout, node: Node, coor, circle_radius, circle_border):
         font = cv2.FONT_HERSHEY_SIMPLEX
-        text = node.name + ( ":" + node.label if node.label != "" else "")
+        text = node.name + ( ":" + node.class_node.name if node.class_node.name != "" else "")
         text_thickness = int(math.ceil(circle_radius/(len(text)*10)))
         text_scale = Visualize._find_node_text_scale(text, font, text_thickness, circle_radius)
         text_size, _ = cv2.getTextSize(text, font, text_scale, text_thickness)

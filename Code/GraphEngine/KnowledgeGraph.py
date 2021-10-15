@@ -1,12 +1,30 @@
 from typing import Any, List, Union, Dict, Set
 
 
-class EdgeType:
-    def __init__(self, name = 1):
-        self._type = self._name_to_type(name)
+class Type:
+    def __init__(self, name = None, id = None):
+        self._types = {1: "Type", 2: "Subclass of", 3: "subproperty of", 4: "domain", 5: "range"}
+        self._type = self._get_type(name, id)
 
+    def _get_type(self, name, id):
+        if name != None and id == None:
+            return self._name_to_type(name)
+        elif name == None and id != None:
+            return self._id_to_type(id)
+        else:
+            raise Exception("Type must be initialized with either a name or type of the following: " + str(self._types))
+    
     def _name_to_type(self, name):
-        return 1
+        inverted_dict = {self._types[key]: key for key in self._types}
+        if name not in inverted_dict:
+            raise Exception("Type must be one of the following: " + str(self._types))
+        return inverted_dict[name]
+
+    def _id_to_type(self, id):
+        if id not in self._types:
+            raise Exception("type must be one of the following: " + str(self._types))
+        return id
+            
 
     def __eq__(self, edge_type):
         return self.value == edge_type.value
@@ -14,6 +32,22 @@ class EdgeType:
     @property
     def value(self):
         return self._type
+
+
+
+class NodeClass:
+    def __init__(self, type: Type, node_class: None):
+        self._type = type
+        self._class = node_class
+
+    @property
+    def type(self): 
+        return self._type
+
+    @property
+    def node_class(self):
+        return self._class
+
 
 
 
@@ -48,11 +82,12 @@ class Identifier:
 class Node:
     _id_count = 0
 
-    def __init__(self, name : str, label : str = None):
+    def __init__(self, name : str, node_class : object = None, properties : List[object] = None):
         self._identifier = Identifier()
         self._name = name
         self._edges = {}
-        self._label = str("") if label == None else label
+        self._class = node_class    #Classes could also have been a node with edge label "type" or "subclass of"
+        self._properties = properties if properties != None else []
 
     def __eq__(self, node: object) -> bool:
         return self.id == node.id
@@ -64,8 +99,15 @@ class Node:
         if edge.id in self._edges:
             del self._edges[edge.id]
 
-    def set_label(self, label : str) -> None:
-        self._label = label
+    def set_class(self, class_node : object) -> None:
+        self._class = class_node
+
+    def set_properties(self, properties : List[object]) -> None:
+        self._properties = properties
+
+    def add_property(self, property : object) -> None:
+        if property not in self._properties:
+            self._properties += property
 
     @property
     def id(self) -> int:
@@ -84,8 +126,14 @@ class Node:
         return len([key for key in self._edges])
 
     @property
-    def label(self):
-        return self._label
+    def class_node(self):
+        return self._class
+
+    @property
+    def properties(self):
+        return self._properties
+
+
 
 
 
