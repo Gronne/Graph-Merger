@@ -261,7 +261,7 @@ class Graph:
     def get_node_ids(self):
         return [key for key in self._dict_of_nodes]
 
-    def get_edge_ids(self):
+    def get_edge_node_ids(self):
         return [(self._dict_of_edges[key].from_node.id, self._dict_of_edges[key].to_node.id) for key in self._dict_of_edges]
 
     def get_edges_between(self, node_a, node_b):

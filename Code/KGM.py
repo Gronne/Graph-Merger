@@ -3,9 +3,11 @@
 #---- Libraries -----
 from HelpFiles.FileModules import *
 from GraphEngine.GraphEngine import *
-from MergeEngine.MergeEngine import MergeEngine
+from GraphEngine.Visualization import *
+from MergeEngine.MergeEngine import *
 from Evaluation.Evaluation import Evaluator
 
+import cv2
 #------- Main -------
 
 #Setup GraphEngine
@@ -44,8 +46,7 @@ G.add_nodes(nodes)
 G.add_edges(edges)
 G.print_info()
 
-plot = Visualize.KnowledgeGraph(G, [750, 750])
+pages = [Page(G)]
 
-cv2.imshow('Graph', plot)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+Visualize([800, 1000]).page(pages[0])
+

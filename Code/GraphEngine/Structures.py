@@ -30,7 +30,7 @@ class knowledge:
 
 
 class Page:
-    def __init__(self, knowledgeDB, external_links = [], internal_links = []):
+    def __init__(self, knowledgeDB, external_links : List[object] = [], internal_links : List[object] = []):
         self._id = Identifier()
         self._knowledge_graph = knowledgeDB
         self._page_content = None
@@ -83,6 +83,9 @@ class Website:
     def __init__(self, pages: List[Page]):
         self._id = Identifier()
         self._dict_of_pages = {page.id: page for page in pages}   #Impossible to have dublications since it is a set based on the ids
+        self._set_page_website()        
+
+    def _set_page_website(self):
         for page_key in self._dict_of_pages:
             self._dict_of_pages[page_key].set_website(self)
 
@@ -104,6 +107,13 @@ class Website:
     def add_internal_link(self, from_page, to_page):
         from_page.add_internal_link(to_page.link)
 
+    @property
+    def page_ids(self):
+        return [key for key in self._dict_of_pages]
+
+    @property
+    def internet_link_pairs(self):
+        return [(page, link.page) for page in self.pages for link in page.internal_links] 
 
 
 
@@ -123,6 +133,10 @@ class Bubble:
     def id(self):
         return self._id
 
+    @property
+    def external_link_pairs(self):
+        return [(website, link.page.website) for website in self.websites for page in website.pages for link in page.external_links]
+
 
 
 
@@ -141,6 +155,10 @@ class Network:
     @property
     def bubbles(self):
         return [self._dict_of_bubbles[key] for key in self._dict_of_bubbles]
+
+    @property
+    def website_link_pairs(self):
+        return [(website, link.page.website) for website in self.websites for page in website.pages for link in page.external_links]
 
     def _check_for_unique_pages(dict_of_websites):
         dict_of_pages = {}
