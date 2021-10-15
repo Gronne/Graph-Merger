@@ -99,6 +99,9 @@ class PageVisualizer(GraphEngineVisualizer):
 
     def _create_info_plot(self, page : Page, size):
         layout = self._generate_layout(size)
+        website_id = str(page.website.id) if page.website != None else None
+        layout = cv2.putText(layout, "Page: " + str(page.id), (0+5, int(size[0]/2)-20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1, cv2.LINE_AA)
+        layout = cv2.putText(layout, "Website: " + str(website_id), (0+5, int(size[0]/2)+20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1, cv2.LINE_AA)
         return layout
 
     def _get_graph_components(self, page: Page):

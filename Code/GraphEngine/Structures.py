@@ -18,7 +18,7 @@ class knowledge:
 
     @property
     def id(self):
-        return int(self._id)
+        return self._id.value
 
     def __eq__(self, knowledge):
         return self.id == knowledge.id
@@ -41,7 +41,7 @@ class Page:
 
     @property
     def id(self):
-        return int(self._id)
+        return self._id.value
 
     def __eq__(self, page):         #Two pages will only be the same if they have the same id
         return self.id == page.id
@@ -91,7 +91,7 @@ class Website:
 
     @property
     def id(self):
-        return int(self._id)
+        return self._id.value
 
     def __eq__(self, website):
         return self.id == website.id
@@ -131,7 +131,7 @@ class Bubble:
 
     @property
     def id(self):
-        return self._id
+        return self._id.value
 
     @property
     def external_link_pairs(self):
