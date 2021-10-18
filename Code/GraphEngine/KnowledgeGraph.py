@@ -77,11 +77,13 @@ class Identifier:
     def value(self) -> int:
         return self._id
 
+    @property
+    def type(self) -> int:
+        return int
+
 
 
 class Node:
-    _id_count = 0
-
     def __init__(self, name : str, node_class : object = None, properties : List[object] = None):
         self._identifier = Identifier()
         self._name = name
@@ -184,6 +186,10 @@ class Edge:
     def id(self):
         return self._id.value
 
+    @property
+    def id_pair(self):
+        return (self.to_node.id, self.from_node.id)
+
 
 
 
@@ -264,7 +270,13 @@ class Graph:
     def get_edge_node_ids(self):
         return [(self._dict_of_edges[key].from_node.id, self._dict_of_edges[key].to_node.id) for key in self._dict_of_edges]
 
-    def get_edges_between(self, node_a, node_b):
+    def get_edges_between(self, node_a, node_b = None):
+        if isinstance(node_a, Edge):
+            node_b = node_a.to_node
+            node_a = node_a.from_node
+        elif isinstance(node_a, Identifier.type):
+            node_a = self.get_node(node_a)
+            node_b = self.get_node(node_b)
         return [node_a.edges[key] for key in node_a.edges if key in node_b.edges]
 
     def print_info(self):
