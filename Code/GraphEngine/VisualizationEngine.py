@@ -76,14 +76,14 @@ class GraphEngineVisualizer:
         layout.fill(255)
         return layout
 
-    def _place_text(self, layout, text, middle_coor, width):
+    def _place_text(self, layout, text, middle_coor, width, color = (255, 0, 0)):
         font = cv2.FONT_HERSHEY_SIMPLEX
         line_type = cv2.LINE_AA
         thickness = int(math.ceil(width/(len(text)*10)))
         scale = self.__calc_text_scale(text, font, thickness, width)
         text_size, _ = cv2.getTextSize(text, font, scale, thickness)
         start_coor = (int(middle_coor[0] - text_size[0] / 2), int(middle_coor[1] + text_size[1] / 2))
-        return cv2.putText(layout, text, start_coor, font, scale, (255, 0, 0), thickness, line_type)
+        return cv2.putText(layout, text, start_coor, font, scale, color, thickness, line_type)
 
     def _place_circle(self, layout, node, coor, circle_radius, circle_border):
         layout =  cv2.circle(layout, coor, int(circle_radius), (50, 50, 50), circle_border)
@@ -127,7 +127,7 @@ class GraphEngineVisualizer:
             middle_coor = ((coor_from[0] + (coor_to[0]-coor_from[0])/2), coor_from[1] + ((coor_to[1]-coor_from[1])/2))
             max_size = abs(coor_from[1] - coor_to[1]) if abs(coor_from[0]-coor_to[0]) < abs(coor_from[1] - coor_to[1]) else abs(coor_from[0]-coor_to[0])
             width = (math.sqrt(max_size)*6) / (len(obj.get_edges_between(edge)) / (2 if len(obj.get_edges_between(edge)) > 1 else 1))
-            layout = self._place_text(layout, self._edge_text(edge), middle_coor, width)
+            layout = self._place_text(layout, self._edge_text(edge), middle_coor, width, (50, 50, 255))
         return layout
 
     def _node_text(self, node):
