@@ -1,1 +1,14 @@
-Test: "Test"
+ground_truth_nodes: 50
+ground_truth_interconnectivity: 0.2
+
+nr_of_websites: 10
+average_pages_per_website: 5
+min_pages_per_website: 1
+max_pages_per_website: 10
+website_interconnectivity: 0.5
+
+page_complexity: None
+varity_of_page_complexity: None
+
+nr_of_bubbles: 2
+procentage_of_websites_in_bubbles: 0.2
