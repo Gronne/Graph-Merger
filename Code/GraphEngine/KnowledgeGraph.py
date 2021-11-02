@@ -1,4 +1,5 @@
-from typing import Any, List, Union, Dict, Set
+from __future__ import annotations
+from typing import Any, List, Union, Dict, Set, Tuple
 
 
 class Type:
@@ -69,9 +70,16 @@ class Property:
 
 class Identifier:
     _id_count = 0
-    def __init__(self):
-        self._id = Identifier._id_count
-        Identifier._id_count += 1
+    def __init__(self, id = None):
+        if id == None:
+            self._id = Identifier._id_count
+            Identifier._id_count += 1
+        else:
+            self._id = id
+            if Identifier._id_count < id:
+                Identifier._id_count = id + 1
+
+        
 
     @property
     def value(self) -> int:
@@ -84,33 +92,61 @@ class Identifier:
 
 
 class Node:
-    def __init__(self, name : str, node_class : object = None, properties : List[object] = None):
-        self._identifier = Identifier()
+    def __init__(self, name : str, id=None):
+        self._identifier = Identifier(id)
         self._name = name
         self._edges = {}
-        self._class = node_class    #Classes could also have been a node with edge label "type" or "subclass of"
-        self._properties = properties if properties != None else []
+        self._classes = {}    
+        self._properties = {}
 
-    def __eq__(self, node: object) -> bool:
+    def __eq__(self, node: Node) -> bool:
+        if not isinstance(node, Node):
+            return False
         return self.id == node.id
 
-    def add_edge(self, edge) -> None:
+    def add_edge(self, edge : Edge) -> None:
         self._edges[edge.id] = edge
 
-    def remove_edge(self, edge) -> None:
+    def remove_edge(self, edge : Edge) -> None:
         if edge.id in self._edges:
             del self._edges[edge.id]
 
-    def set_class(self, class_node : object) -> None:
-        self._class = class_node
+    def add_class(self, class_node : Node, class_edge = None) -> Edge:
+        if class_node == None: return None
+        if class_edge != None: 
+            self._classes[class_node.id] = class_node
+            edge = class_edge
+        else:
+            self._classes[class_node.id] = class_node
+            edge = Edge(self, class_node, "isA")
+        return edge
 
-    def set_properties(self, properties : List[object]) -> None:
-        self._properties = properties
+    def add_classes(self, class_nodes : List[Node]) -> List[Edge]:
+        if isinstance(class_nodes, None): return None
+        return [self.add_class(node) for node in class_nodes]
 
-    def add_property(self, property : object) -> None:
-        if property not in self._properties:
-            self._properties += property
+    def add_property(self, property_node : Node, property_type : str) -> Edge:
+        if isinstance(property_type, Edge):
+            self._properties[property_node.id] = property_node
+            edge = property_type
+        else:
+            self._properties[property_node.id] = property_node
+            edge = Edge(self, property_node, property_type)
+        return edge
 
+    def add_properties(self, properties : List[Tuple[Node, str]]) -> List[Edge]:
+        if isinstance(properties, None): return
+        return [self.add_property(property[0], property[1]) for property in properties]
+
+    def get_edges_to(self, node : Union[Node, int]) -> Edge:
+        try:
+            if isinstance(node, Node):
+                return [self._edges[edge_id] for edge_id in self._edges if self._edges[edge_id].to_node == node]
+            else:
+                return [self._edges[edge_id] for edge_id in self._edges if self._edges[edge_id].to_node.id == node]
+        except:
+            raise Exception(f"No edges points to node: {node.id}")
+            
     @property
     def id(self) -> int:
         return self._identifier.value
@@ -120,20 +156,20 @@ class Node:
         return self._name
 
     @property
-    def edges(self):
+    def edges(self) -> List[Edge]:
         return self._edges
 
     @property
-    def nr_of_edges(self):
+    def nr_of_edges(self) -> int:
         return len([key for key in self._edges])
 
     @property
-    def class_node(self):
-        return self._class
+    def classes(self) -> List[Tuple[Node, Edge]]:
+        return [(self._classes[node_id], self.get_edges_to(node_id)) for node_id in self._classes]
 
     @property
-    def properties(self):
-        return self._properties
+    def properties(self) -> List[Tuple[Node, Edge]]:
+        return [(self._properties[property_id], self.get_edges_to(property_id)) for property_id in self._properties]
 
 
 
@@ -141,30 +177,50 @@ class Node:
 
 
 class Edge:
-    def __init__(self, from_node, to_node, type, properties = None):
+    def __init__(self, from_node, to_node, label, id = None):
         self._check_nodes(from_node, to_node)
-        self._id = Identifier()
+        self._id = Identifier(id)
         self._from_node = from_node
         self._to_node = to_node
-        self._type = type
-        self._properties = self._init_properties(properties)
+        self.from_node.add_edge(self)
+        self.to_node.add_edge(self)
+        self._types = {}    
+        self._properties = {}
+        self._label = label
+        #self._edge_node = Node(name)
 
     def _check_nodes(self, from_node, to_node):
         if from_node == to_node:
-            raise Exception("A node can not point to itself")
-
-    def _init_properties(self, properties):
-        _properties = []
-        if properties != None:
-            _properties += properties if isinstance(properties, List) else [properties]
-        return set(_properties)
+            raise Exception("A node cannot point to itself")
 
     def __eq__(self, edge : object) -> bool:
+        if not isinstance(edge, Edge):
+            return False
         from_check = self.from_node == edge.from_node
         to_check = self.to_node == edge.to_node
-        type_check = self.type == edge.type
-        property_check = self._properties == edge.properties
+        type_check = self._types == edge._types
+        property_check = self._properties == edge._properties
         return  from_check and to_check and type_check and property_check 
+
+    #def add_type(self, type_node : Node) -> Edge:
+    #    if isinstance(type_node, None): return None
+    #    self._types[type_node.id] = type_node
+    #    edge = self._edge_node.add_class(type_node)
+    #    return edge
+
+    #def add_types(self, types : List[Node]) -> List[Edge]:
+    #    if isinstance(types, None): return None
+    #   return [self.add_type(node) for node in types]
+
+    #def add_property(self, property_node : Node, property_type : str) -> Edge:
+    #    self._properties[property_node.id] = property_node
+    #    edge = self._edge_node.add_property(property_node, property_type)
+    #    return edge
+
+    #def add_properties(self, properties : List[Tuple[Node, str]]) -> List[Edge]:
+    #    if isinstance(properties, None): return None
+    #   return [self.add_type(property[0], property[1]) for property in properties]
+
 
     @property
     def from_node(self) -> Node:
@@ -175,20 +231,18 @@ class Edge:
         return self._to_node
 
     @property
-    def type(self):
-        return self._type
-
-    @property
-    def properties(self):
-        return self._properties
-
-    @property
     def id(self):
         return self._id.value
 
     @property
     def id_pair(self):
-        return (self.to_node.id, self.from_node.id)
+        return (self.from_node.id, self.to_node.id)
+    
+    @property
+    def label(self):
+        return self._label
+
+    
 
 
 
@@ -255,11 +309,19 @@ class Graph:
         self._dict_of_nodes[edge.from_node.id].add_edge(edge)
         self._dict_of_nodes[edge.to_node.id].add_edge(edge)
 
-    def get_nodes(self) -> List[Node]:
+    def get_nodes(self) -> List[Node]: 
         return [self._dict_of_nodes[key] for key in self._dict_of_nodes]
 
-    def get_edges(self) -> List[Edge]:
+    def get_edges(self) -> List[Edge]: 
         return [self._dict_of_edges[key] for key in self._dict_of_edges]
+
+    @property
+    def nodes(self) -> List[Node]:
+        return self.get_nodes()
+
+    @property
+    def edges(self) -> List[Edge]:
+        return self.get_edges()
 
     def get_node(self, id) -> Node:
         return self._dict_of_nodes[id]

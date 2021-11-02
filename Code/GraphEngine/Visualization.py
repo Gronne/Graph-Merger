@@ -1,7 +1,5 @@
 from typing import List, Union, Dict, Set
 import cv2
-from networkx.algorithms.distance_measures import radius
-import numpy
 import random
 
 from GraphEngine.KnowledgeGraph import *
@@ -55,7 +53,6 @@ class Visualize:
 
 
 
-
 class PageVisualizer(GraphEngineVisualizer):
     def __init__(self, size = [800, 1000]):
         super().__init__(size, (0.8, 0.2), 0) #0 = Horizontal, 1 = Vertical
@@ -74,8 +71,7 @@ class PageVisualizer(GraphEngineVisualizer):
         return node.name
 
     def _edge_text(self, edge):
-        return str(edge.type)
-
+        return str(edge.label)
 
 
 
@@ -101,9 +97,6 @@ class WebsiteVisualizer(GraphEngineVisualizer):
 
     def _edge_text(self, edge):
         return " "
-
-    
-
 
 
 

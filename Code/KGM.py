@@ -14,7 +14,7 @@ import cv2
 CONFIG_GE= load_config("../Data/ConfigFiles/CONFIG_GE.yaml")
 network = GraphEngine.generate_network(CONFIG_GE)
 
-Visualize().network(network)
+#Visualize().network(network)
 #Visualize().bubbles(network.bubbles)
 #Visualize().websites(network.websites)
 
@@ -39,7 +39,12 @@ Evaluate = Evaluator()
 #Test
 network, bubbles, websites, pages = test_data()
 
-Visualize().pages(pages[:2])
-Visualize().websites(websites)
-Visualize().bubbles(bubbles)
-Visualize().network(network)
+Visualize().page(pages[0])
+#Visualize().websites(websites)
+#Visualize().bubbles(bubbles)
+#Visualize().network(network)
+
+save_knowledge_graph(pages[0].graph, "../Data/Graphs/KnowledgeGraphs/", "test")
+graph = load_knowledge_graph("../Data/Graphs/KnowledgeGraphs/", "test")
+
+Visualize().page(Page(graph))

@@ -46,7 +46,7 @@ class GraphEngineVisualizer:
         nodes, edges = self._get_graph_components(obj)
         node_ids = self._to_ids(nodes)
         edge_node_ids = self._to_edge_pair_ids(edges)
-        graph = networkx.DiGraph()
+        graph = networkx.Graph()
         graph.add_nodes_from(node_ids)
         graph.add_edges_from(edge_node_ids)
         node_positions = networkx.drawing.spring_layout(graph)

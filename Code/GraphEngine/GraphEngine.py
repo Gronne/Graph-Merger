@@ -74,9 +74,12 @@ class GraphEngine:
 
 def test_data():
     def small_graph():
-        G = Graph()
-        classes = [Node("Dyr"), Node("Transportmiddel"), Node("C"), Node("D")]
-        nodes = [Node("Hund", classes[0]), Node("Kat", classes[0]), Node("Bil", classes[1]), Node("Fly", classes[1])]
+        class_nodes = [Node("Dyr"), Node("Transportmiddel")]
+        nodes = [Node("Hund"), Node("Kat"), Node("Bil"), Node("Fly")]
+        class_edges = [ nodes[0].add_class(class_nodes[0]), 
+                        nodes[1].add_class(class_nodes[0]),
+                        nodes[2].add_class(class_nodes[1]),
+                        nodes[3].add_class(class_nodes[1])]
         edges = [ Edge(nodes[0], nodes[1], "part of"), 
                 Edge(nodes[1], nodes[0], "part of"),
                 Edge(nodes[0], nodes[1], "Something"),
@@ -85,13 +88,10 @@ def test_data():
                 Edge(nodes[2], nodes[3], "Parent of"), 
                 Edge(nodes[3], nodes[0], "Creative"), 
                 Edge(nodes[0], nodes[2], "Something")]
-        G.add_nodes(nodes)
-        G.add_edges(edges)
-        return G
+        return Graph(nodes + class_nodes, edges + class_edges)
 
 
     def large_graph():
-        G = Graph()
         nodes = [Node("Hund"), Node("Kat"), Node("Bil"), Node("Fly"), Node("Abe"), Node("Banan"), Node("Circus"), Node("Dommer"), Node("Endelig")]
         edges = [ Edge(nodes[0], nodes[1], "connection"),
                 Edge(nodes[1], nodes[2], "connection"),
@@ -108,9 +108,7 @@ def test_data():
                 Edge(nodes[3], nodes[0], "connection"),
                 Edge(nodes[3], nodes[8], "connection"),
                 Edge(nodes[5], nodes[3], "connection")]
-        G.add_nodes(nodes)
-        G.add_edges(edges)
-        return G
+        return Graph(nodes, edges)
 
 
     pages = [Page(small_graph()), Page(large_graph()), Page(), Page(), Page(), Page(), Page(), Page(), Page()]
