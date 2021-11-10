@@ -12,6 +12,10 @@ class Visualize:
     def __init__(self, size = [800, 1000]):
         self._size = size
 
+    def knowledge_tree(self, page: Page):
+        plot = KnowledgeTreeVisualizer(self._size).visualize(page)
+        self._plot(plot, "Knowledge Tree")
+
     def page(self, page: Page):
         plot = PageVisualizer(self._size).visualize(page)
         self._plot(plot, "Page")
@@ -48,6 +52,31 @@ class Visualize:
         cv2.imshow(name, plot)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
+
+
+
+
+
+class KnowledgeTreeVisualizer(GraphEngineVisualizer):
+    def __init__(self, size = [800, 1000]):
+        super().__init__(size, (0.8, 0.2), 0) #0 = Horizontal, 1 = Vertical
+
+    def _create_info_plot(self, page : Page, size):
+        layout = self._generate_layout(size)
+        website_id = str(page.website.id) if page.website != None else None
+        min_size = size[0] if size[0] < size[1] else size[1]
+        page_info_start_coor = (size[1]/2, int(size[0]/2-min_size*0.2))
+        web_info_start_coor = (size[1]/2, int(size[0]/2+min_size*0.2))
+        layout = self._place_text(layout, "Page: "+str(page.id), page_info_start_coor, min_size*0.9)
+        layout = self._place_text(layout, "Website:"+str(website_id), web_info_start_coor, min_size*0.9)
+        return layout
+
+    def _node_text(self, node):
+        return node.name
+
+    def _edge_text(self, edge):
+        return ""
+
 
 
 

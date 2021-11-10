@@ -2,6 +2,34 @@ from __future__ import annotations
 from typing import Any, List, Union, Dict, Set, Tuple
 
 
+
+class Triple:
+    def __init__(self, object : Node, subject : Node, predicate: Edge = None):
+        self._object = object
+        self._subject = subject
+        if predicate == None:
+            self._predicate = Edge(self._object, self._subject)
+        else:
+            self._predicate = predicate
+
+    def __eq__(self, triple: Triple) -> bool:
+        return self.object == triple.object and self.subject == triple.subject and self.predicate == triple.predicate
+
+    @property
+    def object(self):
+        return self._object
+
+    @property
+    def subject(self):
+        return self._subject
+
+    @property
+    def predicate(self):
+        return self._predicate
+
+
+
+
 class Type:
     def __init__(self, name = None, id = None):
         self._types = {1: "Type", 2: "Subclass of", 3: "subproperty of", 4: "domain", 5: "range"}
@@ -92,12 +120,15 @@ class Identifier:
 
 
 class Node:
-    def __init__(self, name : str, id=None):
+    def __init__(self, name : str = None, id=None):
         self._identifier = Identifier(id)
         self._name = name
         self._edges = {}
         self._classes = {}    
         self._properties = {}
+
+    def set_name(self, name):
+        self._name = name
 
     def __eq__(self, node: Node) -> bool:
         if not isinstance(node, Node):
@@ -177,7 +208,7 @@ class Node:
 
 
 class Edge:
-    def __init__(self, from_node, to_node, label, id = None):
+    def __init__(self, from_node, to_node, label = None, id = None):
         self._check_nodes(from_node, to_node)
         self._id = Identifier(id)
         self._from_node = from_node
@@ -189,6 +220,9 @@ class Edge:
         self._label = label
         #self._edge_node = Node(name)
 
+    def set_label(self, label):
+        self._label = label
+
     def _check_nodes(self, from_node, to_node):
         if from_node == to_node:
             raise Exception("A node cannot point to itself")
@@ -198,9 +232,8 @@ class Edge:
             return False
         from_check = self.from_node == edge.from_node
         to_check = self.to_node == edge.to_node
-        type_check = self._types == edge._types
-        property_check = self._properties == edge._properties
-        return  from_check and to_check and type_check and property_check 
+        label_check = self.label == edge.label
+        return  from_check and to_check and label_check
 
     #def add_type(self, type_node : Node) -> Edge:
     #    if isinstance(type_node, None): return None
@@ -249,7 +282,10 @@ class Edge:
 
 
 class Graph:
-    def __init__(self, nodes = None, edges = None):
+    def __init__(self, nodes = None, edges = None, triples = None):
+        if triples != None:
+            nodes = [triple.object for triple in triples] + [triple.subject for triple in triples]
+            edges = [triple.predicate for triple in triples]
         self._dict_of_nodes = self._populate_dict_of_nodes(nodes)
         self._dict_of_words = self._populate_dict_of_words(nodes)
         self._dict_of_edges = self._populate_dict_of_edges(edges)

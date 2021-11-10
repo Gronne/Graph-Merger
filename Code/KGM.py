@@ -5,46 +5,20 @@ from HelpFiles.FileModules import *
 from GraphEngine.GraphEngine import *
 from GraphEngine.Visualization import *
 from MergeEngine.MergeEngine import *
-from Evaluation.Evaluation import Evaluator
-
-import cv2
+from Evaluation.Evaluation import Evaluate
 #------- Main -------
 
-#Setup GraphEngine
+#Generate Simulation
 CONFIG_GE= load_config("../Data/ConfigFiles/CONFIG_GE.yaml")
-network = GraphEngine.generate_network(CONFIG_GE)
+ground_truth, network = GraphEngine.generate(CONFIG_GE)
 
-#Visualize().network(network)
-#Visualize().bubbles(network.bubbles)
-#Visualize().websites(network.websites)
-
-
-#Setup MergeEngine
+#Merge Network
 CONFIG_ME = load_config("../data/ConfigFiles/CONFIG_ME.yaml")
-ME = MergeEngine(CONFIG_ME)
+knowledge_tree = MergeEngine.merge(network)
 
-
-#Setup Evaluator
-Evaluate = Evaluator()
-
-#Simulate
-
-
-#Evaluate
+#Evaluate Merge
+Evaluate = Evaluate.merge_engine(ground_truth, network, knowledge_tree)
 
 
 
 
-
-#Test
-network, bubbles, websites, pages = test_data()
-
-Visualize().page(pages[0])
-#Visualize().websites(websites)
-#Visualize().bubbles(bubbles)
-#Visualize().network(network)
-
-save_knowledge_graph(pages[0].graph, "../Data/Graphs/KnowledgeGraphs/", "test")
-graph = load_knowledge_graph("../Data/Graphs/KnowledgeGraphs/", "test")
-
-Visualize().page(Page(graph))

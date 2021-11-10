@@ -182,7 +182,7 @@ class GraphEngineVisualizer:
     def _calc_angle_from_node_center(self, node_coors, edge_id_pair, radian_offset, inverse_dir):
         from_center_coor = node_coors[edge_id_pair[0]]
         to_center_coor = node_coors[edge_id_pair[1]]
-        angle = math.atan(abs(from_center_coor[1]-to_center_coor[1])/abs(from_center_coor[0]-to_center_coor[0]))
+        angle = math.atan(abs(from_center_coor[1]-to_center_coor[1])/(abs(from_center_coor[0]-to_center_coor[0])+0.00001))
         if edge_id_pair[0] < edge_id_pair[1]:
             angle += -radian_offset if inverse_dir else radian_offset
         else:

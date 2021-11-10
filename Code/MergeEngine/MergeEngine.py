@@ -4,5 +4,5 @@
 
 
 class MergeEngine:
-    def __init__(self, CONFIG):
-        pass
+    def merge(network):
+        return None

@@ -1,14 +1,62 @@
-ground_truth_nodes: 50
-ground_truth_interconnectivity: 0.2
 
-nr_of_websites: 10
-average_pages_per_website: 5
-min_pages_per_website: 1
-max_pages_per_website: 10
-website_interconnectivity: 0.5
+Seed: 1
 
-page_complexity: None
-varity_of_page_complexity: None
 
-nr_of_bubbles: 2
-procentage_of_websites_in_bubbles: 0.2
+Knowledge:
+  Names:
+    Distance: 0.00
+    SeveralNames: 0.00
+
+  Shape:
+    Width: 10
+    Atoms: 1000
+    Variance: 0.5
+
+  Intersection:
+    Average: 0.1
+    Variance: 0.05
+
+  SubTopics:
+    Elements:
+      Minimum: 1
+      Maximum: 4
+    Overlap: 0.2
+    TopicThreshold: 5
+    Merge:
+      Sparsity: 0.2
+      UniformArea: 0.5
+
+  Atoms:
+    Triples:
+      Minimum: 3
+      Maximum: 10
+    Nodes:
+      Sparsity: 0.5
+      UniformArea: 0.5
+    Edges:
+      Sparsity: 0.5
+      UniformArea: 0.5
+
+
+
+Network: 
+- Websites:
+  - Total: 50
+  - InternalLinkProbability: 0.5
+  - ExternalLinkProbability: 0.5
+  - FrontPage:
+    - Minimum: 0
+
+- Pages:
+  - Average: 5
+  - Minimum: 1
+  - Maximum: 10
+  - Noise:
+    - ProbabilityForError: 0.5
+    - ErrorsOnPage: 0.1
+    - PageIsNoise: 0.1
+
+  
+
+Contradictions:
+- Something: 0

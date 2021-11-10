@@ -78,6 +78,28 @@ def _edge_to_dict(edge):
     return {"object": object, "subject": subject, "label": label}
 
 
+
+def save_website(website):
+    pass
+
+def load_website():
+    pass
+
+def save_network(network):
+    pass
+
+def load_network():
+    pass
+
+def save_bubbles(bulles):
+    pass
+
+def load_bubbles():
+    pass
+
+
+
+
 def save_dict_as_json(dict, folder_addr, name):
     if os.path.exists(folder_addr) == False:
         os.makedirs(folder_addr)
