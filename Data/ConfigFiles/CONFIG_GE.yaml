@@ -8,8 +8,8 @@ Knowledge:
     SeveralNames: 0.00
 
   Shape:
-    Width: 10
-    Atoms: 1000
+    Width: 5
+    Atoms: 100
     Variance: 0.5
 
   Intersection:

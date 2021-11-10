@@ -8,7 +8,7 @@ from GraphEngine.KnowledgeGraph import *
 
 class KnowledgeTree:
     def __init__(self):
-        self._root = Topic()
+        self._root = Topic(); self._root.add_name("Root")
         self._topics : dict[int, Topic] = {}        #{id -> {"Topic": topic, "Atoms": {}, "SubTopics": {}}}
         self._subtopics : dict[int, Topic] = {}     #{id -> {"SubTopic": Topic, "Topics": {} "Layer": int}}
         self._atoms : dict[int, Topic] = {}         #{id -> {"Atom" : atom, "Topics": {}}}
@@ -23,8 +23,38 @@ class KnowledgeTree:
         return [self._topics[key]["Topic"] for key in self._topics]
 
     @property
+    def subtopics(self) -> list[Topic]:
+        return [self._subtopics[key]["SubTopic"] for key in self._subtopics]
+
+    @property
+    def names(self) -> list[str]:
+        return [name for name in self._names]
+
+    @property
     def root(self) -> Topic:
         return self._root
+
+    @property
+    def nodes(self) -> Topic:
+        return self.topics + self.subtopics + self.atoms + [self.root]
+
+    @property
+    def edges(self) -> Topic:   #use triple links?
+        return [edge for node in self.nodes for edge in node.edges]
+            
+    def get_node(self, topic_id : int) -> Topic:
+        if topic_id in self._topics: return self._topics[topic_id]["Topic"]
+        elif topic_id in self._subtopics: return self._subtopics[topic_id]["SubTopic"]
+        elif topic_id in self._atoms: return self._atoms[topic_id]["Atom"]
+        elif topic_id == self.root.id: return self.root
+
+    def get_edges_between(self, topic_a : Topic, topic_b : Topic = None):
+        if isinstance(topic_a, TopicEdge):
+            return [topic_a]
+        if topic_a in topic_b.children:
+            return [TopicEdge(topic_a, topic_b)]
+        elif topic_a in topic_b.parents:
+            return [TopicEdge(topic_b, topic_a)]
         
     def add_topic(self, topic : Topic) -> None:
         self._topics[topic.id] = {"Topic": topic, "Atoms": {}, "SubTopics": {}, "Layer": 0}
@@ -119,6 +149,10 @@ class Topic:
     @property
     def names(self) -> list[str]:
         return self._names
+    
+    @property
+    def name(self) -> str:
+        return ''.join(name + "-" for name in self.names)[-1]
 
     @property
     def parents(self) -> list[Topic]:
@@ -127,6 +161,10 @@ class Topic:
     @property
     def children (self) -> list[Topic]:
         return self._children 
+
+    @property
+    def edges(self) -> list[TopicEdge]:
+        return [TopicEdge(child, self) for child in self.children]
 
     @property
     def triples(self) -> list[Triple]:
@@ -155,3 +193,20 @@ class Topic:
 
     def add_triples(self, triples : list[Triple]) -> None:
         self._triples += triples
+
+
+
+
+class TopicEdge:
+    def __init__(self, child : Topic, parent : Topic):
+        self._id = Identifier()
+        self._child = child
+        self._parent = parent
+
+    @property
+    def id(self) -> int:
+        self._id.value
+
+    @property
+    def id_pair(self) -> Tuple[int, int]:
+        return (self._parent.id, self._child.id)

@@ -27,41 +27,6 @@ class GraphEngine:
         KnowledgeGenerator.generate_atom_knowledge(CONFIG, knowledge_tree)
         KnowledgeGenerator.generate_sub_layers(CONFIG, knowledge_tree)
         KnowledgeGenerator.generate_names(CONFIG, knowledge_tree)
-
-        triples = knowledge_tree.root.children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].triples
-        print(len(triples))
-        Visualize().page(Page(Graph(triples = triples)))
-        triples = knowledge_tree.root.children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].triples
-        print(len(triples))
-        Visualize().page(Page(Graph(triples = triples)))
-        triples = knowledge_tree.root.children[0].children[0].children[0].children[0].children[0].children[0].children[0].triples
-        print(len(triples))
-        Visualize().page(Page(Graph(triples = triples)))
-        triples = knowledge_tree.root.children[0].children[0].children[0].children[0].children[0].children[0].triples
-        print(len(triples))
-        Visualize().page(Page(Graph(triples = triples)))
-        triples = knowledge_tree.root.children[0].children[0].children[0].children[0].children[0].triples
-        print(len(triples))
-        Visualize().page(Page(Graph(triples = triples)))
-        triples = knowledge_tree.root.children[0].children[0].children[0].children[0].triples
-        print(len(triples))
-        Visualize().page(Page(Graph(triples = triples)))
-        triples = knowledge_tree.root.children[0].children[0].children[0].triples
-        print(len(triples))
-        Visualize().page(Page(Graph(triples = triples)))
-        triples = knowledge_tree.root.children[0].children[0].triples
-        print(len(triples))
-        Visualize().page(Page(Graph(triples = triples)))
-        triples = knowledge_tree.root.children[0].triples
-        print(len(triples))
-        Visualize().page(Page(Graph(triples = triples)))
-        triples = knowledge_tree.root.triples
-        print(len(triples))
-        Visualize().page(Page(Graph(triples = triples)))
-
-
-        #for atom in knowledge_tree.atoms:
-        #    Visualize().page(Page(Graph(triples = atom.triples)))
         return knowledge_tree
 
     def _generate_network(CONFIG, knowledge_tree):

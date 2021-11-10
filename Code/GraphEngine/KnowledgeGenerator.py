@@ -42,6 +42,15 @@ class KnowledgeGenerator:
         topics_inter_area = [(topic_key, topics_info[topic_key]["relative depth"] * topics_info[topic_key]["relative intersection"]) for topic_key in topics_info]
         topics_inter_area.sort(key=lambda x:x[1], reverse = True)
         intersections = {}
+        if len(topics_inter_area) == 1:
+            a_inter = topics_inter_area.pop()
+            return {KnowledgeGenerator._id_list_to_key([topic_id]): ([topic_id], topics_info[topic_id]["relative depth"]) for topic_id in topics_info}
+        if len(topics_inter_area) == 2:
+            a_inter = topics_inter_area.pop()
+            b_inter = topics_inter_area.pop()
+            inter_map = {KnowledgeGenerator._id_list_to_key([a_inter[0], b_inter[0]]): ([a_inter[0], b_inter[0]], b_inter[1] if a_inter[1] < b_inter[1] else a_inter[1])}
+            unique_inter_map = {KnowledgeGenerator._id_list_to_key([topic_id]): ([topic_id], topics_info[topic_id]["relative depth"]) for topic_id in topics_info}
+            return unique_inter_map | inter_map
         while len(topics_inter_area) > 0:
             a_inter = topics_inter_area.pop()
             if len(topics_inter_area) > 0:

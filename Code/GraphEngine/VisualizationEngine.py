@@ -46,11 +46,15 @@ class GraphEngineVisualizer:
         nodes, edges = self._get_graph_components(obj)
         node_ids = self._to_ids(nodes)
         edge_node_ids = self._to_edge_pair_ids(edges)
+        node_positions = self._find_node_positions(obj, node_ids, edge_node_ids)        
+        return self._transform_positions_to_coors(size, node_positions)
+
+    def _find_node_positions(self, obj, node_ids, edge_node_ids):
         graph = networkx.Graph()
         graph.add_nodes_from(node_ids)
         graph.add_edges_from(edge_node_ids)
         node_positions = networkx.drawing.spring_layout(graph)
-        return self._transform_positions_to_coors(size, node_positions)
+        return node_positions
 
     def _to_ids(self, objects):
         return [obj.id for obj in objects]
@@ -200,4 +204,12 @@ class GraphEngineVisualizer:
             coor = (to_center_coor[0] - width, to_center_coor[1] + height) if inverse_dir else (from_center_coor[0] + width, from_center_coor[1] - height)
         return coor
 
-
+    def _create_info_plot(self, object, size):
+        layout = self._generate_layout(size)
+        min_size = size[0] if size[0] < size[1] else size[1]
+        strings = self._info_plot_strings(object)
+        start_coor = (size[1]/2, int(size[0]/2-(min_size*0.2 * (len(strings)/2))))
+        for string_count, string in enumerate(strings):
+            string_start_coor = (start_coor[0], start_coor[1]+min_size*0.2*(string_count+1))
+            layout = self._place_text(layout, string, string_start_coor, min_size*0.9)
+        return layout

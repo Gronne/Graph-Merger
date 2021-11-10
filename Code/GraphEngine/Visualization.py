@@ -1,7 +1,10 @@
 from typing import List, Union, Dict, Set
 import cv2
 import random
+import networkx
+from networkx.drawing.nx_pydot import graphviz_layout
 
+from GraphEngine.KnowledgeTreeStructures import KnowledgeTree
 from GraphEngine.KnowledgeGraph import *
 from GraphEngine.Structures import *
 from GraphEngine.VisualizationEngine import GraphEngineVisualizer
@@ -12,8 +15,8 @@ class Visualize:
     def __init__(self, size = [800, 1000]):
         self._size = size
 
-    def knowledge_tree(self, page: Page):
-        plot = KnowledgeTreeVisualizer(self._size).visualize(page)
+    def knowledge_tree(self, knowledge_tree : KnowledgeTree, normal_graph = True):
+        plot = KnowledgeTreeVisualizer(self._size, normal_graph).visualize(knowledge_tree)
         self._plot(plot, "Knowledge Tree")
 
     def page(self, page: Page):
@@ -57,25 +60,47 @@ class Visualize:
 
 
 
-class KnowledgeTreeVisualizer(GraphEngineVisualizer):
-    def __init__(self, size = [800, 1000]):
-        super().__init__(size, (0.8, 0.2), 0) #0 = Horizontal, 1 = Vertical
 
-    def _create_info_plot(self, page : Page, size):
-        layout = self._generate_layout(size)
-        website_id = str(page.website.id) if page.website != None else None
-        min_size = size[0] if size[0] < size[1] else size[1]
-        page_info_start_coor = (size[1]/2, int(size[0]/2-min_size*0.2))
-        web_info_start_coor = (size[1]/2, int(size[0]/2+min_size*0.2))
-        layout = self._place_text(layout, "Page: "+str(page.id), page_info_start_coor, min_size*0.9)
-        layout = self._place_text(layout, "Website:"+str(website_id), web_info_start_coor, min_size*0.9)
-        return layout
+class KnowledgeTreeVisualizer(GraphEngineVisualizer):
+    def __init__(self, size = [800, 1000], normal_graph = True):
+        super().__init__(size, (0.8, 0.2), 0) #0 = Horizontal, 1 = Vertical
+        self._normal_graph = normal_graph
+
+    def _info_plot_strings(self, knowledge_tree : KnowledgeTree):
+        strings = [ "Knowledge Tree",
+                    "Nr. of Topics: " + str(len(knowledge_tree.topics)),
+                    "Nr. of Subtopics: " + str(len(knowledge_tree.subtopics)),
+                    "Nr. of Atoms: " + str(len(knowledge_tree.atoms)),
+                    "Max layers: " + str(max([knowledge_tree.get_layer(topic) for topic in knowledge_tree.topics])),
+                    "Min layers: " + str(min([knowledge_tree.get_layer(topic) for topic in knowledge_tree.topics])),
+                    "Different Names: " + str(len(knowledge_tree.names)),
+                    "Triples: " + str(sum([len(atom.triples) for atom in knowledge_tree.atoms])) ]
+        return strings
+
+    def _find_node_positions(self, knowledge_tree : KnowledgeTree, node_ids, edge_node_ids):
+        if self._normal_graph:
+            return super()._find_node_positions(knowledge_tree, node_ids, edge_node_ids)
+        graph = networkx.Graph()
+        graph.add_nodes_from(node_ids)
+        graph.add_edges_from(edge_node_ids)
+        node_positions = graphviz_layout(graph, prog="dot", root=knowledge_tree.root.id)
+        largest_xy = (0, 0)
+        for pos_key in node_positions:
+            pos = node_positions[pos_key]
+            if pos[0] > largest_xy[0]:
+                largest_xy = (pos[0], largest_xy[1])
+            if pos[1] > largest_xy[1]:
+                largest_xy = (largest_xy[0], pos[1])
+        for pos_key in node_positions:
+            pos = node_positions[pos_key]
+            node_positions[pos_key] = ((pos[0]/(largest_xy[0]/2))-1, (pos[1]/(largest_xy[1]/2))-1)
+        return node_positions
 
     def _node_text(self, node):
         return node.name
 
     def _edge_text(self, edge):
-        return ""
+        return " "
 
 
 
@@ -86,15 +111,11 @@ class PageVisualizer(GraphEngineVisualizer):
     def __init__(self, size = [800, 1000]):
         super().__init__(size, (0.8, 0.2), 0) #0 = Horizontal, 1 = Vertical
 
-    def _create_info_plot(self, page : Page, size):
-        layout = self._generate_layout(size)
+    def _info_plot_strings(self, page : Page):
         website_id = str(page.website.id) if page.website != None else None
-        min_size = size[0] if size[0] < size[1] else size[1]
-        page_info_start_coor = (size[1]/2, int(size[0]/2-min_size*0.2))
-        web_info_start_coor = (size[1]/2, int(size[0]/2+min_size*0.2))
-        layout = self._place_text(layout, "Page: "+str(page.id), page_info_start_coor, min_size*0.9)
-        layout = self._place_text(layout, "Website:"+str(website_id), web_info_start_coor, min_size*0.9)
-        return layout
+        website_string = "Website:"+str(website_id)
+        page_string = "Page: "+str(page.id)
+        return [page_string, website_string]
 
     def _node_text(self, node):
         return node.name
@@ -110,16 +131,10 @@ class WebsiteVisualizer(GraphEngineVisualizer):
     def __init__(self, size = [800, 1000]):
         super().__init__(size, (0.8, 0.2), 0)
 
-    def _create_info_plot(self, website : Website, size):
-        layout = self._generate_layout(size)
-        min_size = size[0] if size[0] < size[1] else size[1]
-        number_of_elements = len(website.pages)+2 # +1 for the website, +1 for distance
-        start_coor = (size[1]/2, int(size[0]/2-(min_size*0.2 * (number_of_elements/2))))
-        layout = self._place_text(layout, "Website: "+str(website.id), start_coor, min_size*0.9)
-        for page_count, page_id in enumerate(website.page_ids):
-            page_info_start_coor = (start_coor[0], start_coor[1]+min_size*0.2*(page_count+2))
-            layout = self._place_text(layout, "page:"+str(page_id), page_info_start_coor, min_size*0.9)
-        return layout
+    def _info_plot_strings(self, website : Website, size):
+        website_string = "Website: " + str(website.id)
+        page_strings = ["Page: " + str(page_id) for page_id in website.page_ids]
+        return [website_string] + page_strings
 
     def _node_text(self, node):
         return "Page: " + str(node.id)
@@ -135,16 +150,10 @@ class BubbleVisualizer(GraphEngineVisualizer):
     def __init__(self, size = [800, 1000]):
         super().__init__(size, (0.8, 0.2), 0)
 
-    def _create_info_plot(self, bubble : Bubble, size):
-        layout = self._generate_layout(size)
-        min_size = size[0] if size[0] < size[1] else size[1]
-        number_of_elements = len(bubble.websites)+2 # +1 for the website, +1 for distance
-        start_coor = (size[1]/2, int(size[0]/2-(min_size*0.2 * (number_of_elements/2))))
-        layout = self._place_text(layout, "Bubble", start_coor, min_size*0.9)
-        for page_count, page_id in enumerate(bubble.website_ids):
-            page_info_start_coor = (start_coor[0], start_coor[1]+min_size*0.2*(page_count+2))
-            layout = self._place_text(layout, "page:"+str(page_id), page_info_start_coor, min_size*0.9)
-        return layout
+    def _info_plot_strings(self, bubble : Bubble, size):
+        bubble_string = "Bubble"
+        website_strings = ["Website: " + str(website_id) for website_id in bubble.website_ids]
+        return [bubble_string] + website_strings
 
     def _node_text(self, node):
         return "Website:" + str(node.id)
@@ -166,18 +175,14 @@ class NetworkVisualizer(GraphEngineVisualizer):
         self._network = network
         return super().visualize(network)
 
-    def _create_info_plot(self, network : Network, size):
-        layout = self._generate_layout(size)
-        min_size = size[0] if size[0] < size[1] else size[1]
-        number_of_elements = 6+1 #+1 for distance
-        start_coor = (size[1]/2, int(size[0]/2-(min_size*0.2 * (number_of_elements/2))))
-        layout = self._place_text(layout, "Network", start_coor, min_size*0.9)
-        layout = self._place_text(layout, "Nr. of bubbles: " + str(len(network.bubbles)), (start_coor[0], start_coor[1]+min_size*0.2*2), min_size*0.9)
-        layout = self._place_text(layout, "Nr. of websites: " + str(len(network.websites)), (start_coor[0], start_coor[1]+min_size*0.2*3), min_size*0.9)
-        layout = self._place_text(layout, "Nr. of pages: " + str(sum([len(website.pages) for website in network.websites])), (start_coor[0], start_coor[1]+min_size*0.2*4), min_size*0.9)
-        layout = self._place_text(layout, "Nr. of internal links: " + str(sum([len(website.internal_links) for website in network.websites])), (start_coor[0], start_coor[1]+min_size*0.2*5), min_size*0.9)
-        layout = self._place_text(layout, "Nr. of external links: " + str(sum([len(website.external_links) for website in network.websites])), (start_coor[0], start_coor[1]+min_size*0.2*6), min_size*0.9)
-        return layout
+    def _info_plot_strings(self, network : Network, size):
+        strings = [ "Network", 
+                    "Nr. of bubbles: " + str(len(network.bubbles)), 
+                    "Nr. of websites: " + str(len(network.websites)), 
+                    "Nr. of pages: " + str(sum([len(website.pages) for website in network.websites])), 
+                    "Nr. of internal links: " + str(sum([len(website.internal_links) for website in network.websites])), 
+                    "Nr. of external links: " + str(sum([len(website.external_links) for website in network.websites])) ]
+        return strings
 
     def _node_text(self, node):
         return "Website:" + str(node.id)
