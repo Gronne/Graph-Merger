@@ -4,27 +4,29 @@ from typing import Any, List, Union, Dict, Set, Tuple
 
 
 class Triple:
-    def __init__(self, object : Node, subject : Node, predicate: Edge = None):
+    def __init__(self, object : Node, subject : Node, predicate: Edge | str = None):
         self._object = object
         self._subject = subject
         if predicate == None:
             self._predicate = Edge(self._object, self._subject)
-        else:
+        elif isinstance(predicate, Edge):
             self._predicate = predicate
+        else:
+            self._predicate = Edge(object, subject, predicate)
 
     def __eq__(self, triple: Triple) -> bool:
         return self.object == triple.object and self.subject == triple.subject and self.predicate == triple.predicate
 
     @property
-    def object(self):
+    def object(self) -> Node:
         return self._object
 
     @property
-    def subject(self):
+    def subject(self) -> Node:
         return self._subject
 
     @property
-    def predicate(self):
+    def predicate(self) -> Edge:
         return self._predicate
 
 
@@ -120,7 +122,7 @@ class Identifier:
 
 
 class Node:
-    def __init__(self, name : str = None, id=None):
+    def __init__(self, name : str = " ", id=None):
         self._identifier = Identifier(id)
         self._name = name
         self._edges = {}
@@ -223,7 +225,7 @@ class Edge:
     def set_label(self, label):
         self._label = label
 
-    def _check_nodes(self, from_node, to_node):
+    def _check_nodes(self, from_node : Node, to_node : Node):
         if from_node == to_node:
             raise Exception("A node cannot point to itself")
 
@@ -282,25 +284,58 @@ class Edge:
 
 
 class Graph:
-    def __init__(self, nodes = None, edges = None, triples = None):
+    def __init__(self, nodes = None, edges = None, triples : list[Triple] = None, graphs : list[Graph] = None):
         if triples != None:
             nodes = [triple.object for triple in triples] + [triple.subject for triple in triples]
             edges = [triple.predicate for triple in triples]
+        if graphs != None:
+            nodes = [node for graph in graphs for node in graph.nodes]
+            edges = [edge for graph in graphs for edge in graph.edges]
         self._dict_of_nodes = self._populate_dict_of_nodes(nodes)
         self._dict_of_words = self._populate_dict_of_words(nodes)
-        self._dict_of_edges = self._populate_dict_of_edges(edges)
+        self._dict_of_edges : dict[int, Edge] = self._populate_dict_of_edges(edges)
 
-    def _populate_dict_of_nodes(self, nodes):
+    def __eq__(self, graph : Graph) -> bool:
+        return self.nodes == graph.nodes and self.edges == graph.edges
+
+    @property
+    def nodes(self) -> List[Node]:
+        return self.get_nodes()
+
+    @property
+    def edges(self) -> List[Edge]:
+        return self.get_edges()
+
+    @property
+    def triples(self) -> list[Triple]:
+        return [Triple(edge.from_node, edge.to_node, edge.label) for edge in self._dict_of_edges.values()]
+
+    def subset_of(self, graph : Graph) -> bool:
+        for node in self.nodes:
+            if graph.node_exist(node) == False:
+                return False
+        for edge in self.edges:
+            if graph.edge_exist(edge) == False:
+                return False
+        return True
+
+    def node_exist(self, node : Node) -> bool:
+        return node.id in self._dict_of_nodes
+
+    def edge_exist(self, edge : Edge) -> bool:
+        return edge.id in self._dict_of_edges
+
+    def _populate_dict_of_nodes(self, nodes : list[Node]) -> dict[int, Node]:
         return {node.id: node for node in nodes} if nodes != None else {}
 
-    def _populate_dict_of_words(self, nodes):
+    def _populate_dict_of_words(self, nodes : list[Node]):
         if nodes == None: return {}
         dict_of_words = {node.name: {} for node in nodes}
         for node in nodes:
             dict_of_words[node.name][node.id] = node
         return dict_of_words
 
-    def _populate_dict_of_edges(self, edges):
+    def _populate_dict_of_edges(self, edges : list[Edge]) -> dict[int, Edge]:
         return {edge.id: edge for edge in edges} if edges != None else {}
 
     def add_node(self, node: Node) -> None:
@@ -322,26 +357,26 @@ class Graph:
         self._add_edge_to_dict_of_edges(edge)
         self._add_edge_to_nodes(edge)
 
-    def add_edges(self, edges: List[Edge]):
+    def add_edges(self, edges: List[Edge]) -> None:
         for edge in edges:
             self.add_edge(edge)
 
-    def remove_edge(self, edge):
+    def remove_edge(self, edge : Edge) -> None:
         self._remove_from_nodes(edge)
         self._remove_from_dict_of_edges(edge)
 
-    def _remove_from_nodes(self, edge):
+    def _remove_from_nodes(self, edge : Edge) -> None:
         self._dict_of_nodes[edge.from_node.id].remove_edge(edge)
         self._dict_of_nodes[edge.to_node.id].remove_edge(edge)
 
-    def _remove_from_dict_of_edges(self, edge):
+    def _remove_from_dict_of_edges(self, edge : Edge) -> None:
         if edge.id in self._dict_of_edges:
             del self._dict_of_edges[edge.id]
 
-    def _add_edge_to_dict_of_edges(self, edge):
+    def _add_edge_to_dict_of_edges(self, edge : Edge) -> None:
         self._dict_of_edges[edge.id] = edge
 
-    def _add_edge_to_nodes(self, edge):
+    def _add_edge_to_nodes(self, edge : Edge) -> None:
         self._dict_of_nodes[edge.from_node.id].add_edge(edge)
         self._dict_of_nodes[edge.to_node.id].add_edge(edge)
 
@@ -350,14 +385,6 @@ class Graph:
 
     def get_edges(self) -> List[Edge]: 
         return [self._dict_of_edges[key] for key in self._dict_of_edges]
-
-    @property
-    def nodes(self) -> List[Node]:
-        return self.get_nodes()
-
-    @property
-    def edges(self) -> List[Edge]:
-        return self.get_edges()
 
     def get_node(self, id) -> Node:
         return self._dict_of_nodes[id]

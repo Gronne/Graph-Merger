@@ -1,5 +1,6 @@
 import numpy
 import math
+import random
 
 from GraphEngine.KnowledgeTreeStructures import *
 from GraphEngine.KnowledgeGraph import *
@@ -225,7 +226,8 @@ class KnowledgeGenerator:
         return subtopics
 
     def _generate_nr_of_subtopic_elements(element_interval):
-        return numpy.random.randint(element_interval["Minimum"], element_interval["Maximum"]+1)
+        numbers = numpy.random.randint(element_interval["Minimum"], element_interval["Maximum"]+1, 2)
+        return int((numbers[0]+numbers[1])/2)
 
     def _extract_elements(elements, nr_of_elements_to_extract, elements_used):
         if (elements_used + nr_of_elements_to_extract) < len(elements):
@@ -245,25 +247,36 @@ class KnowledgeGenerator:
         return [elements[random_index] for random_index in random_indexes]
 
     def _generate_subtopic_knowledge(subtopic : Topic, merge_sparsity):
-        class mock_edge: 
-            def __init__(self, label): self.label = label
         nr_of_elements = len(subtopic.children)
         nr_of_triples = int(ProbabilityEngine.HouseDistribution(nr_of_elements-1, nr_of_elements*(nr_of_elements+1), merge_sparsity["UniformArea"], merge_sparsity["Sparsity"]))
         if nr_of_triples == 0: nr_of_triples += 1
-        pool_of_current_triples = subtopic.triples
-        pool_of_nodes = [triple.object for triple in pool_of_current_triples] + [triple.subject for triple in pool_of_current_triples]
-        pool_of_edges = [triple.predicate for triple in pool_of_current_triples] + [ mock_edge(Identifier()) ]
-        for _ in range(0, nr_of_triples):
-            random_object = pool_of_nodes[numpy.random.randint(0, len(pool_of_nodes))]
-            random_subject = pool_of_nodes[numpy.random.randint(0, len(pool_of_nodes))]
+        pool_of_predicates = [triple.predicate.label for triple in subtopic.triples if triple.predicate.label != "Is"] 
+        pool_of_predicates += [UniqueName.name() for _ in range(0, nr_of_elements)]
+        #Connect direct children
+        while len(subtopic.children) > 1 and KnowledgeGenerator._elements_are_connected(subtopic) == False:
+            random_object = random.choice(subtopic.children)
+            random_subject = random.choice(subtopic.children)
             while random_object == random_subject:
-                random_subject = pool_of_nodes[numpy.random.randint(0, len(pool_of_nodes))]
-            random_predicate = pool_of_edges[numpy.random.randint(0, len(pool_of_edges))]
-            new_predicate = Edge(random_object, random_subject, random_predicate.label)
-            triple = Triple(random_object, random_subject, new_predicate)
-            subtopic.add_triple(triple)
+                random_subject = random.choice(subtopic.children)
+            random_predicate = random.choice(pool_of_predicates)
+            subtopic.add_triple(Triple(random_object.node, random_subject.node, random_predicate))
+            nr_of_triples -= 1 if nr_of_triples > 0 else 0
+        #Connect cross layers
+        pool_of_children = subtopic.all_children
+        while len(subtopic.children) > 1 and nr_of_triples > 0:
+            random_object = random.choice(pool_of_children)
+            random_subject = random.choice(pool_of_children)
+            while random_object == random_subject:
+                random_subject = random.choice(pool_of_children)
+            random_predicate = random.choice(pool_of_predicates)
+            subtopic.add_triple(Triple(random_object.node, random_subject.node, random_predicate))
+            nr_of_triples -= 1
 
 
+    def _elements_are_connected(subtopic : Topic):
+        children_in_triples = {child.id: child for triple in subtopic.get_own_triples() for child in [triple.object, triple.subject]}
+        children_unused = [child for child in subtopic.children if child.id not in children_in_triples]
+        return len(children_unused) == 0
 
     def generate_names(CONFIG, knowledge_tree):
         n1_distance = CONFIG["Knowledge"]["Names"]["Distance"]
@@ -272,11 +285,11 @@ class KnowledgeGenerator:
 
         for element in knowledge_tree.root.children:
             knowledge_tree.add_name(element, UniqueName.name())
-            fifo.push(element.children)
+            fifo.push(element.children, element)
 
         while len(fifo) > 0:
-            element = fifo.pop()
-            fifo.push(element.children)
+            element, parent = fifo.pop()
+            fifo.push(element.children, element)
             if len(element.names) == 0 or n2_several_names >= numpy.random.uniform(0.001, 1):
                 if n1_distance > 0:
                     closest_name_elements = KnowledgeGenerator._closest_elements(knowledge_tree, element)
@@ -285,7 +298,8 @@ class KnowledgeGenerator:
                         if KnowledgeGenerator._valid_name(element, name):
                             increased_prob = 4 if element == name_element[0] else 0
                             if (((1+n1_distance)**(name_element[1]-1+increased_prob))-1) > numpy.random.uniform(0.001, 1):
-                                knowledge_tree.add_name(element, name)
+                                knowledge_tree.add_name(element, name, parent = parent, children = element.children)
+
                                 break
                     if len(element.names) == 0:
                         knowledge_tree.add_name(element, UniqueName.name())
@@ -296,9 +310,9 @@ class KnowledgeGenerator:
         class FIFO:
             def __init__(self):
                 self._list : list[object] = []
-            def push(self, elements):
-                if isinstance(elements, list): self._list = elements + self._list
-                else: self._list = [elements] + self._list
+            def push(self, elements, parent):
+                if isinstance(elements, list): self._list = [(element, parent) for element in elements] + self._list
+                else: self._list = [(elements, parent)] + self._list
             def pop(self):
                 return self._list.pop()
             def __len__(self):

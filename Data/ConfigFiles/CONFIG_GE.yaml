@@ -8,8 +8,8 @@ Knowledge:
     SeveralNames: 0.00
 
   Shape:
-    Width: 5
-    Atoms: 100
+    Width: 2
+    Atoms: 8
     Variance: 0.5
 
   Intersection:
@@ -39,24 +39,63 @@ Knowledge:
 
 
 
-Network: 
-- Websites:
-  - Total: 50
-  - InternalLinkProbability: 0.5
-  - ExternalLinkProbability: 0.5
-  - FrontPage:
-    - Minimum: 0
 
-- Pages:
-  - Average: 5
-  - Minimum: 1
-  - Maximum: 10
-  - Noise:
-    - ProbabilityForError: 0.5
-    - ErrorsOnPage: 0.1
-    - PageIsNoise: 0.1
+
+
+Network:
+  SatisfactionFrequency: 5
+
+  Knowledge:
+    UniformTopicDistribution: False
+    EachTopicUsed:
+      Minimum: 1
+    Elements:
+      Minimum: 2
+      Average: 5
+      Maximum: 15
+    Page:
+      ConnectionSubset: False
+    NiosePagesToKnowledgePagesDensity: 0.5
+    
+  Websites:
+    Pages:
+      Minimum: 1
+      Average: 5
+    InternalLinks:
+      Dimensions:
+        UniformArea : 0.5
+        Sparsity: 0.8
+      Structures:
+        ToFrontPage: 0.9
+        NavigationBar: 0.8
+        Chain: 0.01
+        Flat: 0.01
+        Blog: 0.05
+        FrontPage:
+          NavigationalFrontPage: 0.01
+          SummaryFrontPage: 0.5
+    ExternalLinks:
+      MinimumTrustFactor: 0.5
+      ExtraLinkProbability: 0.1
+    
+
 
   
 
 Contradictions:
-- Something: 0
+  Noise:
+    NoiseWebsiteToKnowledgeWebsitesRatio: 2
+    AverageNoiseInPages: 0.5
+    NoisePages: 0.2
+
+  Flags:
+    Knowledge: True
+    NoiseOnPages: False
+    NoisePages: False
+    NoiseWebsites: False
+    KnowledgeError: False
+    ObjectiveContradictions: False
+    SubjectiveContradictions: False
+    ObjectiveClaims: False
+    ObjectiveClaimsSubjectiveDeductions: False
+    ObjectiveClaimsWrongDeductions: False

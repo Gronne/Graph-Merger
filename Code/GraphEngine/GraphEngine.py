@@ -1,4 +1,6 @@
 import numpy
+import random 
+
 from GraphEngine.Structures import *
 from GraphEngine.KnowledgeGraph import *
 from GraphEngine.KnowledgeGenerator import KnowledgeGenerator
@@ -7,8 +9,7 @@ from GraphEngine.KnowledgeTreeStructures import *
 from GraphEngine.Visualization import Visualize
 from GraphEngine.Structures import Page
 
-import random 
-import math
+
 
 
 class GraphEngine:        
@@ -17,8 +18,8 @@ class GraphEngine:
         random.seed(CONFIG["Seed"])
         numpy.random.seed(CONFIG["Seed"])
         knowledge_tree = GraphEngine._generate_knowledge(CONFIG)
-        network = GraphEngine._generate_network(CONFIG, knowledge_tree)
-        GraphEngine._mutate_network(CONFIG, knowledge_tree, network)
+        network = GraphEngine._generate_network(CONFIG, knowledge_tree)        
+        GraphEngine._obstruct_knowledge(CONFIG, knowledge_tree, network)
         return knowledge_tree, network
 
     def _generate_knowledge(CONFIG):
@@ -30,10 +31,19 @@ class GraphEngine:
         return knowledge_tree
 
     def _generate_network(CONFIG, knowledge_tree):
-        return None
+        network = Network()
+        while NetworkGenerator.is_knowledge_satisfied(CONFIG, knowledge_tree, network) == False:
+            for _ in range(0, CONFIG["Network"]["SatisfactionFrequency"]):
+                website = NetworkGenerator.generate_website(CONFIG, knowledge_tree)
+                network.add_website(website)
+                print(f"Number of Websites: {len(network.websites)}")
+        print(f"Number of Websites: {len(network.websites)}")
+        print(f"Number of Pages: " + str(len([page for website in network.websites for page in website.pages])))
+        NetworkGenerator.generate_external_links(CONFIG, knowledge_tree, network)
+        return network
 
     
-    def _mutate_network(CONFIG, knowledge_tree, network):
+    def _obstruct_knowledge(CONFIG, knowledge_tree, network):
         pass
         
 

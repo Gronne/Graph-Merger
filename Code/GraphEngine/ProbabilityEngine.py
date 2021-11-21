@@ -5,7 +5,8 @@ import numpy
 
 class ProbabilityEngine:
     def HouseDistribution(minimum, maximum, uniform_area, sparsity):
-        return numpy.random.randint(minimum, maximum+1)
+        numbers =  numpy.random.randint(minimum, maximum+1, 2)
+        return int((numbers[0]+numbers[1])/2)
 
 
 

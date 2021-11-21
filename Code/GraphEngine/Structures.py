@@ -30,9 +30,9 @@ class knowledge:
 
 
 class Page:
-    def __init__(self, knowledgeDB = None, external_links : List[object] = [], internal_links : List[object] = []):
+    def __init__(self, knowledgeDB : Graph = None, external_links : List[object] = [], internal_links : List[object] = []):
         self._id = Identifier()
-        if knowledgeDB == None:
+        if isinstance(knowledgeDB, Graph) == False:
             knowledgeDB = Graph()
         self._knowledge_graph = knowledgeDB
         self._page_content = None
@@ -102,14 +102,19 @@ class Page:
 
 
 class Website:
-    def __init__(self, pages: List[Page]):
+    def __init__(self, pages: List[Page] = [], internal_links = None, front_page = None ):
         self._id = Identifier()
         self._dict_of_pages = {page.id: page for page in pages}   #Impossible to have dublications since it is a set based on the ids
         self._set_page_website()        
+        self._front_page : Page = front_page
 
     def _set_page_website(self):
         for page_key in self._dict_of_pages:
             self._dict_of_pages[page_key].set_website(self)
+
+    @property
+    def front_page(self):
+        return self._front_page
 
     @property
     def id(self):
@@ -152,12 +157,23 @@ class Website:
         self._dict_of_pages[page.id] = page
         self._dict_of_pages[page.id].set_website(self)
 
+    def add_front_page(self, page: Page):
+        self._front_page = page
+        if page.id not in self._dict_of_pages:
+            self.add_page(page)
+
     def add_internal_link(self, from_page : Page, to_page : Page):
+        if not isinstance(from_page, Page):
+            from_page = self.get_node(from_page)
+            to_page = self.get_node(to_page)
         if from_page.website.id != to_page.website.id:
             raise Exception("Cannot add an external link as an external link")
         from_page.add_internal_link(to_page.link)
 
     def add_external_link(self, from_page : Page, to_page : Page):
+        if not isinstance(from_page, Page):
+            from_page = self.get_node(from_page)
+            to_page = self.get_node(to_page)
         if from_page.website.id == to_page.website.id:
             raise Exception("Cannot add an internal link as an external link")
         from_page.add_external_link(to_page.link)

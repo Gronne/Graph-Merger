@@ -43,7 +43,9 @@ class Visualize:
         for bubble in bubbles:
             self.bubble(bubble)
 
-    def network(self, network : Network):
+    def network(self, network : Network, visualize_outliers = True):
+        if visualize_outliers == False:
+            network = Network([website for edge in network.edges for website in [edge.from_page.website, edge.to_page.website]])
         plot = NetworkVisualizer(self._size).visualize(network)
         self._plot(plot, "Network")
 
@@ -131,7 +133,7 @@ class WebsiteVisualizer(GraphEngineVisualizer):
     def __init__(self, size = [800, 1000]):
         super().__init__(size, (0.8, 0.2), 0)
 
-    def _info_plot_strings(self, website : Website, size):
+    def _info_plot_strings(self, website : Website):
         website_string = "Website: " + str(website.id)
         page_strings = ["Page: " + str(page_id) for page_id in website.page_ids]
         return [website_string] + page_strings
@@ -150,7 +152,7 @@ class BubbleVisualizer(GraphEngineVisualizer):
     def __init__(self, size = [800, 1000]):
         super().__init__(size, (0.8, 0.2), 0)
 
-    def _info_plot_strings(self, bubble : Bubble, size):
+    def _info_plot_strings(self, bubble : Bubble):
         bubble_string = "Bubble"
         website_strings = ["Website: " + str(website_id) for website_id in bubble.website_ids]
         return [bubble_string] + website_strings
@@ -175,7 +177,7 @@ class NetworkVisualizer(GraphEngineVisualizer):
         self._network = network
         return super().visualize(network)
 
-    def _info_plot_strings(self, network : Network, size):
+    def _info_plot_strings(self, network : Network):
         strings = [ "Network", 
                     "Nr. of bubbles: " + str(len(network.bubbles)), 
                     "Nr. of websites: " + str(len(network.websites)), 
