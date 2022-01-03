@@ -208,7 +208,7 @@ class KnowledgeGenerator:
         return subtopics
 
     def _generate_sub_topics(elements, element_interval, overlap, layer_nr):
-        layer_size = int(len(elements)*(1+(1+overlap)*(1/layer_nr)))
+        layer_size = int(len(elements)*(1+(overlap)*(1/layer_nr)))
         subtopics = []
         #Use all elements a single time
         elements_used = 0
@@ -251,7 +251,7 @@ class KnowledgeGenerator:
         nr_of_triples = int(ProbabilityEngine.HouseDistribution(nr_of_elements-1, nr_of_elements*(nr_of_elements+1), merge_sparsity["UniformArea"], merge_sparsity["Sparsity"]))
         if nr_of_triples == 0: nr_of_triples += 1
         pool_of_predicates = [triple.predicate.label for triple in subtopic.triples if triple.predicate.label != "Is"] 
-        pool_of_predicates += [UniqueName.name() for _ in range(0, nr_of_elements)]
+        pool_of_predicates += [UniquePredicate.name() for _ in range(0, nr_of_elements)]
         #Connect direct children
         while len(subtopic.children) > 1 and KnowledgeGenerator._elements_are_connected(subtopic) == False:
             random_object = random.choice(subtopic.children)
@@ -278,7 +278,7 @@ class KnowledgeGenerator:
         children_unused = [child for child in subtopic.children if child.id not in children_in_triples]
         return len(children_unused) == 0
 
-    def generate_names(CONFIG, knowledge_tree):
+    def generate_names(CONFIG, knowledge_tree : KnowledgeTree):
         n1_distance = CONFIG["Knowledge"]["Names"]["Distance"]
         n2_several_names = CONFIG["Knowledge"]["Names"]["SeveralNames"]
         fifo = KnowledgeGenerator._create_fifo_queue()
@@ -290,16 +290,15 @@ class KnowledgeGenerator:
         while len(fifo) > 0:
             element, parent = fifo.pop()
             fifo.push(element.children, element)
-            if len(element.names) == 0 or n2_several_names >= numpy.random.uniform(0.001, 1):
+            if len(element.names) == 0 or n2_several_names >= numpy.random.uniform(0.00001, 1):
                 if n1_distance > 0:
                     closest_name_elements = KnowledgeGenerator._closest_elements(knowledge_tree, element)
                     for name_element in closest_name_elements:
                         name = name_element[0]
                         if KnowledgeGenerator._valid_name(element, name):
-                            increased_prob = 4 if element == name_element[0] else 0
+                            increased_prob = 4 if element == name_element[2] else 0
                             if (((1+n1_distance)**(name_element[1]-1+increased_prob))-1) > numpy.random.uniform(0.001, 1):
                                 knowledge_tree.add_name(element, name, parent = parent, children = element.children)
-
                                 break
                     if len(element.names) == 0:
                         knowledge_tree.add_name(element, UniqueName.name())
@@ -339,7 +338,7 @@ class KnowledgeGenerator:
             for match_element in elements:
                 dist = KnowledgeGenerator._dist_between_elements(knowledge_tree, element, match_element)
                 if dist < closest_element[1]:
-                    closest_element = (name, dist)
+                    closest_element = (name, dist, match_element)
             closest_elements += [closest_element]
         return closest_elements
 
@@ -372,3 +371,20 @@ class UniqueName:
             remnant = letter_division % 25
             name += chr(65 + remnant)
         return name[::-1]
+
+
+
+class UniquePredicate:
+    unique_counter = 0
+    def name(name_length = 4):
+        name = UniquePredicate.construct_name(UniquePredicate.unique_counter, name_length)
+        UniquePredicate.unique_counter += 1
+        return name
+
+    def construct_name(counter, name_length = 4):
+        name = ""
+        for letter_count in range(0, name_length):
+            letter_division = int(counter/(25**letter_count))
+            remnant = letter_division % 25
+            name += chr(65 + remnant)
+        return name

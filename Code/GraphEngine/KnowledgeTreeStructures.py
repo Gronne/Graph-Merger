@@ -202,6 +202,7 @@ class Topic:
         self._node = Node(name = str(self.id), id=self.id)
 
     def __eq__(self, topic : Topic):
+        if topic is None: return False
         return self.id == topic.id
 
     @property

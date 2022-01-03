@@ -1,5 +1,6 @@
 import numpy
 import random 
+import time
 
 from GraphEngine.Structures import *
 from GraphEngine.KnowledgeGraph import *
@@ -18,7 +19,7 @@ class GraphEngine:
         random.seed(CONFIG["Seed"])
         numpy.random.seed(CONFIG["Seed"])
         knowledge_tree = GraphEngine._generate_knowledge(CONFIG)
-        network = GraphEngine._generate_network(CONFIG, knowledge_tree)        
+        network = GraphEngine._generate_network(CONFIG, knowledge_tree)
         GraphEngine._obstruct_knowledge(CONFIG, knowledge_tree, network)
         return knowledge_tree, network
 
@@ -36,9 +37,6 @@ class GraphEngine:
             for _ in range(0, CONFIG["Network"]["SatisfactionFrequency"]):
                 website = NetworkGenerator.generate_website(CONFIG, knowledge_tree)
                 network.add_website(website)
-                print(f"Number of Websites: {len(network.websites)}")
-        print(f"Number of Websites: {len(network.websites)}")
-        print(f"Number of Pages: " + str(len([page for website in network.websites for page in website.pages])))
         NetworkGenerator.generate_external_links(CONFIG, knowledge_tree, network)
         return network
 

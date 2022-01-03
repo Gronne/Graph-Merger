@@ -13,11 +13,11 @@ CONFIG_GE= load_config("../Data/ConfigFiles/CONFIG_GE.yaml")
 ground_truth, network = GraphEngine.generate(CONFIG_GE)
 
 #Merge Network
-CONFIG_ME = load_config("../data/ConfigFiles/CONFIG_ME.yaml")
-knowledge_tree = MergeEngine.merge(network)
+#CONFIG_ME = load_config("../data/ConfigFiles/CONFIG_ME.yaml")
+#knowledge_tree = MergeEngine.merge(network)
 
 #Evaluate Merge
-Evaluate = Evaluate.merge_engine(ground_truth, network, knowledge_tree)
+#Evaluate = Evaluate.merge_engine(ground_truth, network, knowledge_tree)
 
 
 

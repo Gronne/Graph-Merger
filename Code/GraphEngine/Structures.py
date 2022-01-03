@@ -297,6 +297,14 @@ class Network:
     def internal_links(self):
         return [establishedLink for website in self.websites for establishedLink in website.external_links]
 
+    @property
+    def nr_of_unique_external_links(self):
+        return len(self.edges)
+
+    @property
+    def nr_of_external_links(self):
+        return len([link for website in self.websites for page in website.pages for link in page.external_links])
+
 
     def _check_for_unique_pages(self, dict_of_websites):
         dict_of_pages = {}

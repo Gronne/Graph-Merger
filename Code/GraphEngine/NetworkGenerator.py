@@ -93,7 +93,7 @@ class NetworkGenerator:
 
     def _choose_topics(knowledge_tree : KnowledgeTree, main_topic : Topic, page_size : int, width_depth_ratio):
         topic_pool = { main_topic.id: main_topic }
-        child_parent_pool = { topic.id: topic for topic in main_topic.children + main_topic.parents}
+        child_parent_pool = { topic.id: topic for topic in main_topic.children + main_topic.parents} 
         while len(topic_pool) < page_size or NetworkGenerator._only_topic_is_root(knowledge_tree, topic_pool):
             topic_a, topic_b = NetworkGenerator._pick_two_distinct_random_elements(child_parent_pool)
             width_depth_a = NetworkGenerator._calc_width_depth(knowledge_tree, topic_pool | {topic_a.id: topic_a})
@@ -305,6 +305,7 @@ class NetworkGenerator:
 
     def generate_external_links(CONFIG, knowledge_tree : KnowledgeTree, network: Network) -> None:
         min_knowledge_trust = CONFIG["Network"]["Websites"]["ExternalLinks"]["MinimumTrustFactor"]
+        external_link_probability = min_knowledge_trust = CONFIG["Network"]["Websites"]["ExternalLinks"]["ExternalLinkProbability"]
         for website in network.websites:
             trust_factor = numpy.random.uniform(min_knowledge_trust, 1.0001)
             knowledge_tree.add_website_trust_factor(website, trust_factor)
@@ -319,7 +320,7 @@ class NetworkGenerator:
                 for topic_child in page_unique_topic_children:
                     topic_parents = [topic for topic in topic_child.parents if topic.id in page_topics]
                     for topic_parent in topic_parents:
-                        if numpy.random.uniform(0, 1.0001) < NetworkGenerator._external_link_probability(knowledge_tree, website, external_link_density, topic_parent):
+                        if numpy.random.uniform(1-external_link_probability, 1.0001) < NetworkGenerator._external_link_probability(knowledge_tree, website, external_link_density, topic_parent):
                             external_pages = [page for page in knowledge_tree.get_topic_pages(topic_child) if page not in website.pages and page in knowledge_tree.get_topic_pages(topic_parent) and not any([edge.to_page.website == website for edge in page.website.external_links])]
                             if len(external_pages) > 0:
                                 scores = [(external_page, NetworkGenerator._external_page_score(knowledge_tree, topic_parent, external_page, trust_factor)) for external_page in external_pages]
